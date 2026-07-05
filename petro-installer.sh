@@ -24,10 +24,21 @@ show_banner() {
     echo -e "${RESET}"
 }
 
+# Function to install dependencies
+install_dependencies() {
+    echo -e "${YELLOW}Installing required dependencies (curl, expect, wget, unzip, etc.)...${RESET}"
+    apt update -y
+    apt install -y curl expect wget sudo nano tar unzip git jq
+    echo -e "${GREEN}Dependencies installed successfully!${RESET}"
+}
+
 # Function to install Pterodactyl Panel
 install_panel() {
     echo -e "${GREEN}Starting Automated Pterodactyl Panel Installation...${RESET}"
     
+    # Install standard packages first
+    install_dependencies
+
     # Prompt for Panel & Admin details
     echo -e "${YELLOW}==========================================================${RESET}"
     echo -e "${CYAN}Please enter your Panel and Admin details:${RESET}"
@@ -39,9 +50,6 @@ install_panel() {
     read -p "6. Admin Password (no special characters like $): " ADMIN_PASS
     echo -e "${YELLOW}==========================================================${RESET}"
 
-    echo -e "${YELLOW}Installing required tools (curl, expect)...${RESET}"
-    apt update && apt install curl expect -y
-    
     echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
     
     # Create an expect script
@@ -109,13 +117,13 @@ install_wings() {
             1|2)
                 echo -e "${GREEN}Starting Automated Wings Installation...${RESET}"
                 
+                # Install standard packages first
+                install_dependencies
+
                 echo -e "${YELLOW}==========================================================${RESET}"
                 read -p "Enter your Node FQDN/Domain (e.g., node.frezy.xyz): " NODE_DOMAIN
                 echo -e "${YELLOW}==========================================================${RESET}"
 
-                echo -e "${YELLOW}Installing required tools (curl, expect)...${RESET}"
-                apt update && apt install curl expect -y
-                
                 echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
                 
                 cat << EOF > install_wings.exp
@@ -165,10 +173,10 @@ EOF
                 
                 echo -e "${GREEN}Wings Installation Complete! Check the green heart in Panel. Press ENTER to return to main menu.${RESET}"
                 read -r
-                break # Exit the sub-menu loop
+                break
                 ;;
             3)
-                return # Go back to main menu
+                return
                 ;;
             *)
                 echo -e "${RED}Invalid option! Press ENTER to try again.${RESET}"
