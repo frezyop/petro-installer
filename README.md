@@ -24,14 +24,16 @@ An interactive, fully automated CLI tool designed to streamline the installation
 Before running the script, ensure you have:
 1. A fresh installation of **Ubuntu** or **Debian**.
 2. **Root (sudo)** access to your VPS.
-3. Your Panel/Node domains ready (e.g., `panel.yourdomain.com`, `node.yourdomain.com`).
+3. Your Panel/Node domains ready (e.g., `testpanel.frezy.xyz`, `node.frezy.xyz`).
 4. Access to your Cloudflare Zero Trust Dashboard (for tunnel creation).
 
 ---
 
 ## ⚡ Quick Start
 
-Run the following command as `root` in your terminal to launch the installer:
+Run the following command as `root` in your terminal to launch the installer. 
+
+*(Note: Click the copy button on the top right of the code block below to ensure you don't copy any markdown brackets by mistake)*
 
 ```bash
 bash <(curl -fsSL [https://raw.githubusercontent.com/frezyop/petro-installer/main/petro-installer.sh](https://raw.githubusercontent.com/frezyop/petro-installer/main/petro-installer.sh))
