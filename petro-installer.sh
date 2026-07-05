@@ -40,31 +40,34 @@ install_panel() {
 
     echo -e "${YELLOW}==========================================================${RESET}"
     echo -e "${CYAN}Please enter your Panel and Admin details:${RESET}"
-    read -p "1. Panel Domain (e.g., testpanel.frezy.xyz): " PANEL_DOMAIN
-    read -p "2. Admin Email: " ADMIN_EMAIL
-    read -p "3. Admin Username: " ADMIN_USERNAME
-    read -p "4. Admin First Name: " ADMIN_FIRST
-    read -p "5. Admin Last Name: " ADMIN_LAST
-    read -p "6. Admin Password (no special characters like $): " ADMIN_PASS
+    
+    # Using explicit echo and read to prevent same-line glitch on mobile SSH clients
+    read -p "1. Panel Domain (e.g., testpanel.frezy.xyz): " PANEL_DOMAIN; echo ""
+    read -p "2. Admin Email: " ADMIN_EMAIL; echo ""
+    read -p "3. Admin Username: " ADMIN_USERNAME; echo ""
+    read -p "4. Admin First Name: " ADMIN_FIRST; echo ""
+    read -p "5. Admin Last Name: " ADMIN_LAST; echo ""
+    read -p "6. Admin Password (no special characters like $): " ADMIN_PASS; echo ""
+    
     echo -e "${YELLOW}==========================================================${RESET}"
 
     echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
     
-    # Create an expect script with EXACT string matches to avoid hanging
+    # Create an expect script with highly flexible string matches
     cat << EOF > install_panel.exp
 set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
 
 expect {
     "Input 0-6:" { send "0\r"; exp_continue }
-    "Database name (panel):" { send "\r"; exp_continue }
-    "Username (pterodactyl):" { send "\r"; exp_continue }
-    "Password (CHANGE_ME):" { send "\r"; exp_continue }
-    "FQDN of this panel" { send "${PANEL_DOMAIN}\r"; exp_continue }
+    "Database name" { send "\r"; exp_continue }
+    "Database username" { send "\r"; exp_continue }
+    "Password (CHANGE_ME)" { send "\r"; exp_continue }
+    "FQDN" { send "${PANEL_DOMAIN}\r"; exp_continue }
     "Configure UFW" { send "n\r"; exp_continue }
-    "Configure Let's Encrypt" { send "n\r"; exp_continue }
+    "Let's Encrypt" { send "n\r"; exp_continue }
     "Assume SSL" { send "y\r"; exp_continue }
-    "agree HTTPS request" { send "n\r"; exp_continue }
+    "HTTPS request" { send "n\r"; exp_continue }
     "Email address for the initial admin" { send "${ADMIN_EMAIL}\r"; exp_continue }
     "Username for the initial admin" { send "${ADMIN_USERNAME}\r"; exp_continue }
     "First name" { send "${ADMIN_FIRST}\r"; exp_continue }
@@ -92,7 +95,7 @@ EOF
     echo "3. Service URL: localhost:8443 (Enable 'No TLS Verify')"
     echo "Paste your Cloudflare install command below:"
     echo -e "${YELLOW}==========================================================${RESET}"
-    read -p "Cloudflare Command: " CF_COMMAND
+    read -p "Cloudflare Command: " CF_COMMAND; echo ""
     eval $CF_COMMAND
     
     echo -e "${GREEN}Panel Installation Complete for ${PANEL_DOMAIN}! Press ENTER to return to menu.${RESET}"
@@ -109,7 +112,7 @@ install_wings() {
         echo "  2) Install Wings on a DIFFERENT VPS (Remote Node)"
         echo "  3) Go Back to Main Menu"
         echo ""
-        read -p "Enter your choice [1-3]: " wings_choice
+        read -p "Enter your choice [1-3]: " wings_choice; echo ""
         
         case $wings_choice in
             1|2)
@@ -118,7 +121,7 @@ install_wings() {
                 install_dependencies
 
                 echo -e "${YELLOW}==========================================================${RESET}"
-                read -p "Enter your Node FQDN/Domain (e.g., node.frezy.xyz): " NODE_DOMAIN
+                read -p "Enter your Node FQDN/Domain (e.g., node.frezy.xyz): " NODE_DOMAIN; echo ""
                 echo -e "${YELLOW}==========================================================${RESET}"
 
                 echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
@@ -149,7 +152,7 @@ EOF
                 echo "   - FQDN: ${NODE_DOMAIN}"
                 echo "3. Go to the 'Configuration' tab, copy the bash command, and paste it below:"
                 echo -e "${YELLOW}==========================================================${RESET}"
-                read -p "Wings Auto-Deploy Command: " WINGS_COMMAND
+                read -p "Wings Auto-Deploy Command: " WINGS_COMMAND; echo ""
                 eval $WINGS_COMMAND
                 
                 echo -e "${GREEN}Patching Wings SSL configuration...${RESET}"
@@ -185,7 +188,7 @@ EOF
 # Function to uninstall Panel
 uninstall_panel() {
     echo -e "${RED}WARNING: This will delete Pterodactyl Panel web files and Nginx configs!${RESET}"
-    read -p "Are you sure you want to uninstall the Panel? (y/n): " confirm
+    read -p "Are you sure you want to uninstall the Panel? (y/n): " confirm; echo ""
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
         echo "Removing files..."
         rm -rf /var/www/pterodactyl
@@ -203,7 +206,7 @@ uninstall_panel() {
 # Function to uninstall Wings
 uninstall_wings() {
     echo -e "${RED}WARNING: This will stop Wings and delete its configuration files!${RESET}"
-    read -p "Are you sure you want to uninstall Wings? (y/n): " confirm
+    read -p "Are you sure you want to uninstall Wings? (y/n): " confirm; echo ""
     if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
         echo "Stopping and removing Wings..."
         systemctl stop wings
@@ -230,7 +233,7 @@ while true; do
     echo "  4) Uninstall Wings"
     echo "  5) Exit"
     echo ""
-    read -p "Enter your choice [1-5]: " choice
+    read -p "Enter your choice [1-5]: " choice; echo ""
     
     case $choice in
         1) install_panel ;;
