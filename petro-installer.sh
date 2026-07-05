@@ -24,46 +24,59 @@ show_banner() {
     echo -e "${RESET}"
 }
 
-# Function to install Pterodactyl Panel (Fully Automated)
+# Function to install Pterodactyl Panel
 install_panel() {
     echo -e "${GREEN}Starting Automated Pterodactyl Panel Installation...${RESET}"
+    
+    # Prompt for Panel & Admin details
+    echo -e "${YELLOW}==========================================================${RESET}"
+    echo -e "${CYAN}Please enter your Panel and Admin details:${RESET}"
+    read -p "1. Panel Domain (e.g., testpanel.frezy.xyz): " PANEL_DOMAIN
+    read -p "2. Admin Email: " ADMIN_EMAIL
+    read -p "3. Admin Username: " ADMIN_USERNAME
+    read -p "4. Admin First Name: " ADMIN_FIRST
+    read -p "5. Admin Last Name: " ADMIN_LAST
+    read -p "6. Admin Password (no special characters like $): " ADMIN_PASS
+    echo -e "${YELLOW}==========================================================${RESET}"
+
     echo -e "${YELLOW}Installing required tools (curl, expect)...${RESET}"
     apt update && apt install curl expect -y
     
     echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
     
-    # Create an expect script to auto-answer the installation prompts
-    cat << 'EOF' > install_panel.exp
+    # Create an expect script
+    cat << EOF > install_panel.exp
 set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
 
 expect {
     "Select option" { send "0\r"; exp_continue }
     "Database name" { send "\r"; exp_continue }
-    "Username" { send "\r"; exp_continue }
-    "Password" { send "FrezyAdmin123!\r"; exp_continue }
-    "FQDN" { send "testpanel.frezy.xyz\r"; exp_continue }
+    "Username (" { send "\r"; exp_continue }
+    "Password (" { send "\r"; exp_continue }
+    "FQDN" { send "${PANEL_DOMAIN}\r"; exp_continue }
     "Configure Firewall" { send "n\r"; exp_continue }
     "Configure Let's Encrypt" { send "n\r"; exp_continue }
     "Assume SSL" { send "y\r"; exp_continue }
     "agree HTTPS request" { send "n\r"; exp_continue }
-    "Email" { send "admin@frezy.xyz\r"; exp_continue }
-    "First name" { send "Frezy\r"; exp_continue }
-    "Last name" { send "Admin\r"; exp_continue }
+    "Email" { send "${ADMIN_EMAIL}\r"; exp_continue }
+    "Username for the initial admin user" { send "${ADMIN_USERNAME}\r"; exp_continue }
+    "First name" { send "${ADMIN_FIRST}\r"; exp_continue }
+    "Last name" { send "${ADMIN_LAST}\r"; exp_continue }
+    "Password for the initial admin user" { send "${ADMIN_PASS}\r"; exp_continue }
     "Proceed" { send "y\r"; exp_continue }
     eof
 }
 EOF
     
-    # Run the automated expect script
     expect install_panel.exp
-    rm install_panel.exp # Cleanup
+    rm install_panel.exp
     
     echo -e "${GREEN}Generating SSL and configuring Nginx for Cloudflare...${RESET}"
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /2.pem -out /1.pem -subj "/CN=localhost"
-    sed -i 's|^\s*ssl_certificate\s\+.*|    ssl_certificate /1.pem;|' /etc/nginx/sites-available/pterodactyl.conf
-    sed -i 's|^\s*ssl_certificate_key\s\+.*|    ssl_certificate_key /2.pem;|' /etc/nginx/sites-available/pterodactyl.conf
-    sed -i 's/\b443\b/8443/g; s/\b80\b/8000/g' /etc/nginx/sites-available/pterodactyl.conf
+    sed -i "s|^\s*ssl_certificate\s\+.*|    ssl_certificate /1.pem;|" /etc/nginx/sites-available/pterodactyl.conf
+    sed -i "s|^\s*ssl_certificate_key\s\+.*|    ssl_certificate_key /2.pem;|" /etc/nginx/sites-available/pterodactyl.conf
+    sed -i "s/\b443\b/8443/g; s/\b80\b/8000/g" /etc/nginx/sites-available/pterodactyl.conf
     systemctl restart nginx
     
     echo -e "${YELLOW}==========================================================${RESET}"
@@ -76,19 +89,36 @@ EOF
     read -p "Cloudflare Command: " CF_COMMAND
     eval $CF_COMMAND
     
-    echo -e "${GREEN}Panel Installation Complete! Press ENTER to return to menu.${RESET}"
+    echo -e "${GREEN}Panel Installation Complete for ${PANEL_DOMAIN}! Press ENTER to return to menu.${RESET}"
     read -r
 }
 
-# Function to install Wings (Fully Automated)
+# Function to install Wings with Sub-Menu
 install_wings() {
-    echo -e "${GREEN}Starting Automated Wings Installation...${RESET}"
-    apt update && apt install curl expect -y
-    
-    echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
-    
-    # Create an expect script to auto-answer Wings installation prompts
-    cat << 'EOF' > install_wings.exp
+    while true; do
+        clear
+        show_banner
+        echo -e "${CYAN}--- WINGS INSTALLATION MENU ---${RESET}"
+        echo "  1) Install Wings on the SAME VPS (as Panel)"
+        echo "  2) Install Wings on a DIFFERENT VPS (Remote Node)"
+        echo "  3) Go Back to Main Menu"
+        echo ""
+        read -p "Enter your choice [1-3]: " wings_choice
+        
+        case $wings_choice in
+            1|2)
+                echo -e "${GREEN}Starting Automated Wings Installation...${RESET}"
+                
+                echo -e "${YELLOW}==========================================================${RESET}"
+                read -p "Enter your Node FQDN/Domain (e.g., node.frezy.xyz): " NODE_DOMAIN
+                echo -e "${YELLOW}==========================================================${RESET}"
+
+                echo -e "${YELLOW}Installing required tools (curl, expect)...${RESET}"
+                apt update && apt install curl expect -y
+                
+                echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
+                
+                cat << EOF > install_wings.exp
 set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
 
@@ -103,30 +133,49 @@ expect {
 }
 EOF
 
-    # Run the automated expect script
-    expect install_wings.exp
-    rm install_wings.exp # Cleanup
-    
-    echo -e "${YELLOW}==========================================================${RESET}"
-    echo -e "${CYAN}WINGS NODE SETUP${RESET}"
-    echo "1. Login to your Panel (https://testpanel.frezy.xyz)"
-    echo "2. Admin -> Nodes -> Add node"
-    echo "   - Daemon Port: 443"
-    echo "   - SSL: Not Behind Proxy"
-    echo "   - FQDN: node.frezy.xyz"
-    echo "3. Go to the 'Configuration' tab, copy the bash command, and paste it below:"
-    echo -e "${YELLOW}==========================================================${RESET}"
-    read -p "Wings Auto-Deploy Command: " WINGS_COMMAND
-    eval $WINGS_COMMAND
-    
-    echo -e "${GREEN}Patching Wings SSL configuration...${RESET}"
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /2.pem -out /1.pem -subj "/CN=localhost"
-    sed -i 's|^\(\s*cert:\s*\).*|\1/1.pem|' /etc/pterodactyl/config.yml
-    sed -i 's|^\(\s*key:\s*\).*|\1/2.pem|' /etc/pterodactyl/config.yml
-    systemctl restart wings
-    
-    echo -e "${GREEN}Wings Installation Complete! Check the green heart in Panel. Press ENTER to return to menu.${RESET}"
-    read -r
+                expect install_wings.exp
+                rm install_wings.exp
+                
+                echo -e "${YELLOW}==========================================================${RESET}"
+                echo -e "${CYAN}WINGS NODE SETUP${RESET}"
+                echo "1. Login to your Panel"
+                echo "2. Admin -> Nodes -> Add node"
+                echo "   - Daemon Port: 443"
+                echo "   - SSL: Not Behind Proxy"
+                echo "   - FQDN: ${NODE_DOMAIN}"
+                echo "3. Go to the 'Configuration' tab, copy the bash command, and paste it below:"
+                echo -e "${YELLOW}==========================================================${RESET}"
+                read -p "Wings Auto-Deploy Command: " WINGS_COMMAND
+                eval $WINGS_COMMAND
+                
+                echo -e "${GREEN}Patching Wings SSL configuration...${RESET}"
+                
+                if [ "$wings_choice" == "1" ]; then
+                    echo -e "${CYAN}Same VPS selected. Using existing panel SSL certificates...${RESET}"
+                    sed -i 's|^\(\s*cert:\s*\).*|\1/1.pem|' /etc/pterodactyl/config.yml
+                    sed -i 's|^\(\s*key:\s*\).*|\1/2.pem|' /etc/pterodactyl/config.yml
+                elif [ "$wings_choice" == "2" ]; then
+                    echo -e "${CYAN}Different VPS selected. Generating new SSL certificates...${RESET}"
+                    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /2.pem -out /1.pem -subj "/CN=localhost"
+                    sed -i 's|^\(\s*cert:\s*\).*|\1/1.pem|' /etc/pterodactyl/config.yml
+                    sed -i 's|^\(\s*key:\s*\).*|\1/2.pem|' /etc/pterodactyl/config.yml
+                fi
+                
+                systemctl restart wings
+                
+                echo -e "${GREEN}Wings Installation Complete! Check the green heart in Panel. Press ENTER to return to main menu.${RESET}"
+                read -r
+                break # Exit the sub-menu loop
+                ;;
+            3)
+                return # Go back to main menu
+                ;;
+            *)
+                echo -e "${RED}Invalid option! Press ENTER to try again.${RESET}"
+                read -r
+                ;;
+        esac
+    done
 }
 
 # Function to uninstall Panel
