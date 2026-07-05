@@ -41,7 +41,6 @@ install_panel() {
     echo -e "${YELLOW}==========================================================${RESET}"
     echo -e "${CYAN}Please enter your Panel and Admin details:${RESET}"
     
-    # Using explicit echo and read to prevent same-line glitch on mobile SSH clients
     read -p "1. Panel Domain (e.g., testpanel.frezy.xyz): " PANEL_DOMAIN; echo ""
     read -p "2. Admin Email: " ADMIN_EMAIL; echo ""
     read -p "3. Admin Username: " ADMIN_USERNAME; echo ""
@@ -53,21 +52,21 @@ install_panel() {
 
     echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
     
-    # Create an expect script with highly flexible string matches
+    # Create an expect script with highly unique strings to prevent hanging
     cat << EOF > install_panel.exp
 set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
 
 expect {
     "Input 0-6:" { send "0\r"; exp_continue }
-    "Database name" { send "\r"; exp_continue }
-    "Database username" { send "\r"; exp_continue }
-    "Password (CHANGE_ME)" { send "\r"; exp_continue }
-    "FQDN" { send "${PANEL_DOMAIN}\r"; exp_continue }
+    "name (panel):" { send "\r"; exp_continue }
+    "username (pterodactyl):" { send "\r"; exp_continue }
+    "Password (CHANGE_ME):" { send "\r"; exp_continue }
+    "FQDN of this panel" { send "${PANEL_DOMAIN}\r"; exp_continue }
     "Configure UFW" { send "n\r"; exp_continue }
     "Let's Encrypt" { send "n\r"; exp_continue }
     "Assume SSL" { send "y\r"; exp_continue }
-    "HTTPS request" { send "n\r"; exp_continue }
+    "agree HTTPS request" { send "n\r"; exp_continue }
     "Email address for the initial admin" { send "${ADMIN_EMAIL}\r"; exp_continue }
     "Username for the initial admin" { send "${ADMIN_USERNAME}\r"; exp_continue }
     "First name" { send "${ADMIN_FIRST}\r"; exp_continue }
