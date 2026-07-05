@@ -36,10 +36,8 @@ install_dependencies() {
 install_panel() {
     echo -e "${GREEN}Starting Automated Pterodactyl Panel Installation...${RESET}"
     
-    # Install standard packages first
     install_dependencies
 
-    # Prompt for Panel & Admin details
     echo -e "${YELLOW}==========================================================${RESET}"
     echo -e "${CYAN}Please enter your Panel and Admin details:${RESET}"
     read -p "1. Panel Domain (e.g., testpanel.frezy.xyz): " PANEL_DOMAIN
@@ -52,26 +50,26 @@ install_panel() {
 
     echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
     
-    # Create an expect script
+    # Create an expect script with EXACT string matches to avoid hanging
     cat << EOF > install_panel.exp
 set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
 
 expect {
-    "Select option" { send "0\r"; exp_continue }
-    "Database name" { send "\r"; exp_continue }
-    "Username (" { send "\r"; exp_continue }
-    "Password (" { send "\r"; exp_continue }
-    "FQDN" { send "${PANEL_DOMAIN}\r"; exp_continue }
-    "Configure Firewall" { send "n\r"; exp_continue }
+    "Input 0-6:" { send "0\r"; exp_continue }
+    "Database name (panel):" { send "\r"; exp_continue }
+    "Username (pterodactyl):" { send "\r"; exp_continue }
+    "Password (CHANGE_ME):" { send "\r"; exp_continue }
+    "FQDN of this panel" { send "${PANEL_DOMAIN}\r"; exp_continue }
+    "Configure UFW" { send "n\r"; exp_continue }
     "Configure Let's Encrypt" { send "n\r"; exp_continue }
     "Assume SSL" { send "y\r"; exp_continue }
     "agree HTTPS request" { send "n\r"; exp_continue }
-    "Email" { send "${ADMIN_EMAIL}\r"; exp_continue }
-    "Username for the initial admin user" { send "${ADMIN_USERNAME}\r"; exp_continue }
+    "Email address for the initial admin" { send "${ADMIN_EMAIL}\r"; exp_continue }
+    "Username for the initial admin" { send "${ADMIN_USERNAME}\r"; exp_continue }
     "First name" { send "${ADMIN_FIRST}\r"; exp_continue }
     "Last name" { send "${ADMIN_LAST}\r"; exp_continue }
-    "Password for the initial admin user" { send "${ADMIN_PASS}\r"; exp_continue }
+    "Password for the initial admin" { send "${ADMIN_PASS}\r"; exp_continue }
     "Proceed" { send "y\r"; exp_continue }
     eof
 }
@@ -117,7 +115,6 @@ install_wings() {
             1|2)
                 echo -e "${GREEN}Starting Automated Wings Installation...${RESET}"
                 
-                # Install standard packages first
                 install_dependencies
 
                 echo -e "${YELLOW}==========================================================${RESET}"
@@ -131,10 +128,9 @@ set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
 
 expect {
-    "Select option" { send "1\r"; exp_continue }
-    "Unsupported type of virtualization" { send "y\r"; exp_continue }
-    "Configure Firewall" { send "n\r"; exp_continue }
-    "Database user" { send "n\r"; exp_continue }
+    "Input 0-6:" { send "1\r"; exp_continue }
+    "virtualization" { send "y\r"; exp_continue }
+    "Configure UFW" { send "n\r"; exp_continue }
     "Let's Encrypt" { send "n\r"; exp_continue }
     "Proceed" { send "y\r"; exp_continue }
     eof
