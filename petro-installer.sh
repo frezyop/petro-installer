@@ -52,7 +52,7 @@ install_panel() {
 
     echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
     
-    # Create an expect script with highly unique strings to prevent hanging
+    # Create an expect script with exact string matches based on the screenshot
     cat << EOF > install_panel.exp
 set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
@@ -61,7 +61,7 @@ expect {
     "Input 0-6:" { send "0\r"; exp_continue }
     "name (panel):" { send "\r"; exp_continue }
     "username (pterodactyl):" { send "\r"; exp_continue }
-    "Password (CHANGE_ME):" { send "\r"; exp_continue }
+    "randomly generated password):" { send "\r"; exp_continue }
     "FQDN of this panel" { send "${PANEL_DOMAIN}\r"; exp_continue }
     "Configure UFW" { send "n\r"; exp_continue }
     "Let's Encrypt" { send "n\r"; exp_continue }
