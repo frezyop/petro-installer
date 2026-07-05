@@ -35,5 +35,4 @@ Run the following command as `root` in your terminal to launch the installer.
 
 *(Note: Click the copy button on the top right of the code block below to ensure you don't copy any markdown brackets by mistake)*
 
-```bash
-bash <(curl -fsSL [https://raw.githubusercontent.com/frezyop/petro-installer/main/petro-installer.sh](https://raw.githubusercontent.com/frezyop/petro-installer/main/petro-installer.sh))
+```bash <(curl -fsSL https://raw.githubusercontent.com/frezyop/petro-installer/main/petro-installer.sh)```
