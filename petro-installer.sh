@@ -52,22 +52,22 @@ install_panel() {
 
     echo -e "${CYAN}Running installer and answering questions automatically...${RESET}"
     
-    # Create an expect script with exact string matches based on the screenshot
+    # Create an expect script with simplified strings to guarantee Enter is pressed
     cat << EOF > install_panel.exp
 set timeout -1
 spawn bash -c "bash <(curl -s https://pterodactyl-installer.se)"
 
 expect {
     "Input 0-6:" { send "0\r"; exp_continue }
-    "name (panel):" { send "\r"; exp_continue }
-    "username (pterodactyl):" { send "\r"; exp_continue }
-    "randomly generated password):" { send "\r"; exp_continue }
-    "FQDN of this panel" { send "${PANEL_DOMAIN}\r"; exp_continue }
+    "Database name" { send "\r"; exp_continue }
+    "Database username" { send "\r"; exp_continue }
+    "randomly generated password" { send "\r"; exp_continue }
+    "FQDN" { send "${PANEL_DOMAIN}\r"; exp_continue }
     "Configure UFW" { send "n\r"; exp_continue }
     "Let's Encrypt" { send "n\r"; exp_continue }
     "Assume SSL" { send "y\r"; exp_continue }
-    "agree HTTPS request" { send "n\r"; exp_continue }
-    "Email address for the initial admin" { send "${ADMIN_EMAIL}\r"; exp_continue }
+    "HTTPS request" { send "n\r"; exp_continue }
+    "Email address" { send "${ADMIN_EMAIL}\r"; exp_continue }
     "Username for the initial admin" { send "${ADMIN_USERNAME}\r"; exp_continue }
     "First name" { send "${ADMIN_FIRST}\r"; exp_continue }
     "Last name" { send "${ADMIN_LAST}\r"; exp_continue }
